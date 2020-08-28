@@ -111,7 +111,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let thread_info = unsafe { debug_event.u.CreateThread() };
                 dbg!(unsafe { GetThreadId(thread_info.hThread) });
                 // let mut buf = [0u16; 1024];
-                let mut buf = [0u8; 1024];
+                let mut buf = [0u8; 14];
                 unsafe {
                     ReadProcessMemory(
                         proc_info.hProcess,
@@ -123,7 +123,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     )
                 };
                // let d = unsafe { String::from_utf16_lossy(&buf) };
-                let d = unsafe { String::from_utf8_lossy(&buf) };
+                let d = { String::from_utf8_lossy(&buf) };
                 dbg!(d);
             }
             minwinbase::EXIT_THREAD_DEBUG_EVENT => {
