@@ -1,6 +1,9 @@
+// Trying to read mem varible of pdb generated via
+// rustc -g -Copt-level=2 .\hello.rs
+
 use pdb::FallibleIterator;
 use std::collections::HashMap;
-use std::{ffi::OsString, os::windows::io::FromRawHandle};
+use std::ffi::OsString;
 use std::{fs::File, mem};
 use winapi::shared::basetsd;
 use winapi::shared::minwindef;
@@ -122,7 +125,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                         std::ptr::null_mut(),
                     )
                 };
-               // let d = unsafe { String::from_utf16_lossy(&buf) };
+                // let d = unsafe { String::from_utf16_lossy(&buf) };
                 let d = { String::from_utf8_lossy(&buf) };
                 dbg!(d);
             }
