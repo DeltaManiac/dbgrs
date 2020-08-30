@@ -38,6 +38,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let address_map = pdb.address_map()?;
     fill_symbols(symbol_table.iter(), &mut symbol_map)?;
     dbg!(symbol_map.get("STATICVAR"));
+    let test_symbol = symbol_map.get("STATICVAR").unwrap();
+    dbg!(test_symbol.offset.to_internal_rva(&address_map));
+    dbg!(test_symbol.offset.to_rva(&address_map));
+    dbg!(test_symbol.offset.to_section_offset(&address_map));
     let path = "C:\\Users\\DeltaManiac\\git\\rust\\testdb\\tests\\hello.exe";
     let startup_info = mem::MaybeUninit::<STARTUPINFOW>::zeroed();
     let mut startup_info = unsafe { startup_info.assume_init() };
@@ -115,10 +119,20 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 dbg!(unsafe { GetThreadId(thread_info.hThread) });
                 // let mut buf = [0u16; 1024];
                 let mut buf = [0u8; 14];
+                let addr =thread_info.lpStartAddress.unwrap() as usize + 0x1d340 as usize;
+                println!("-========= Calculating address =========-");
+                println!("lpStartAddr {:#x} + 0x1d340 = {:#x}",thread_info.lpStartAddress.unwrap() as usize,addr);
+                println!("ThreadLocal Base {:#x} + 0x1d340 = {:#x}",thread_info.lpThreadLocalBase as usize,addr);
+                println!("-========= Calculating address Done =========-");
+                let addr =thread_info.lpStartAddress.unwrap() as usize + 0x340 as usize;
+                println!("-========= Calculating address =========-");
+                println!("lpStartAddr {:#x} + 0x340 = {:#x}",thread_info.lpStartAddress.unwrap() as usize,addr);
+                println!("ThreadLocal Base {:#x} + 0x340 = {:#x}",thread_info.lpThreadLocalBase as usize,addr);
+                println!("-========= Calculating address Done =========-");
                 unsafe {
                     ReadProcessMemory(
                         proc_info.hProcess,
-                        (thread_info.lpStartAddress.unwrap() as usize + 0x340 as usize)
+                        (thread_info.lpStartAddress.unwrap() as usize + 0x1d340 as usize)
                             as minwindef::LPVOID,
                         buf.as_mut_ptr() as minwindef::LPVOID,
                         buf.len() as basetsd::SIZE_T,
