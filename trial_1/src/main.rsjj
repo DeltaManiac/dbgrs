@@ -1,0 +1,88 @@
+#[cfg(windows)]
+extern crate winapi;
+use std::mem;
+use std::fs::File;
+use pdb::PDB;
+use pdb::*;
+use std::os::windows::prelude::*;
+use winapi::shared::basetsd::DWORD64;
+use winapi::shared::basetsd::SIZE_T;
+use winapi::shared::minwindef::BOOL;
+use winapi::shared::minwindef::DWORD;
+use winapi::shared::minwindef::FALSE;
+use winapi::shared::minwindef::LPVOID;
+use winapi::shared::ntdef::WCHAR;
+use winapi::um::dbghelp::SymFromNameW;
+use winapi::um::dbghelp::SymGetOptions;
+use winapi::um::dbghelp::SymInitializeW;
+use winapi::um::dbghelp::SymLoadModuleExW;
+use winapi::um::dbghelp::SymSetOptions;
+use winapi::um::dbghelp::MAX_SYM_NAME;
+use winapi::um::dbghelp::SYMBOL_INFOW;
+use winapi::um::dbghelp::SYMOPT_DEBUG;
+use winapi::um::dbghelp::SYMOPT_LOAD_LINES;
+use winapi::um::debugapi::ContinueDebugEvent;
+use winapi::um::debugapi::WaitForDebugEvent;
+use winapi::um::debugapi::WaitForDebugEventEx;
+use winapi::um::fileapi::FILE_BASIC_INFO;
+use winapi::um::fileapi::FILE_NAME_INFO;
+use winapi::um::fileapi::FILE_STANDARD_INFO;
+use winapi::um::memoryapi::ReadProcessMemory;
+use winapi::um::minwinbase::CREATE_PROCESS_DEBUG_EVENT;
+use winapi::um::minwinbase::CREATE_THREAD_DEBUG_EVENT;
+use winapi::um::minwinbase::DEBUG_EVENT;
+use winapi::um::minwinbase::EXCEPTION_DEBUG_EVENT;
+use winapi::um::minwinbase::EXIT_PROCESS_DEBUG_EVENT;
+use winapi::um::minwinbase::EXIT_THREAD_DEBUG_EVENT;
+use winapi::um::minwinbase::LOAD_DLL_DEBUG_EVENT;
+use winapi::um::minwinbase::LPCONTEXT;
+use winapi::um::processthreadsapi::{
+    CreateProcessW, GetThreadContext, PROCESS_INFORMATION, STARTUPINFOW,
+};
+use winapi::um::winbase::GetFileInformationByHandleEx;
+use winapi::um::winbase::DEBUG_ONLY_THIS_PROCESS;
+use winapi::um::winbase::INFINITE;
+use winapi::um::winnt::CONTEXT;
+use winapi::um::winnt::CONTEXT_ALL;
+use winapi::um::winnt::DBG_CONTINUE;
+use winapi::shared::minwindef::ULONG;
+fn main(){
+    let win = "C:\\Users\\DeltaManiac\\git\\rust\\win\\tests\\hello.exe";
+    // let win = "hello.exe";
+    let win1 = "C:\\Users\\DeltaManiac\\git\\rust\\win\\tests\\hello.pdb";
+    let mut lp_cmd_name = string_to_wide_string(win.to_string());
+    // let lp_cmd_name = std::ffi::OsStr::new(win.clone())
+    //     .encode_wide()
+    //     .chain(std::iter::once(0))
+    //     .collect();
+    let mut si: STARTUPINFOW = unsafe { mem::zeroed() };
+    let mut pi: PROCESS_INFORMATION = unsafe { mem::zeroed() };
+    unsafe {
+        CreateProcessW(
+            std::ptr::null_mut(),
+            lp_cmd_name.as_mut_ptr(),
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            false as BOOL,
+            DEBUG_ONLY_THIS_PROCESS,
+            std::ptr::null_mut(),
+            std::ptr::null_mut(),
+            &mut si,
+            &mut pi,
+        );
+    }
+
+        let file = std::fs::File::open(win1).unwrap();
+    let mut pdb = pdb::PDB::open(file).unwrap();
+    let symbol_table = pdb.global_symbols().unwrap();
+    let address_map = pdb.address_map().unwrap();
+   let d=  pdb.debug_information().unwrap();
+   symbol_table.iter().filter(|x| x.)
+   dbg!(d);
+}
+
+fn string_to_wide_string(input: String) -> Vec<u16> {
+    let input = std::ffi::OsStr::new(&input);
+    let vec: Vec<u16> = input.encode_wide().chain(Some(0)).collect();
+    vec
+}
