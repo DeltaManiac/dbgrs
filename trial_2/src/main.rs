@@ -17,7 +17,7 @@ use winapi::um::processthreadsapi::{
 };
 use winapi::um::winbase;
 use winapi::um::winnt;
-
+use byteorder;
 macro_rules! wide_string {
     ($string:expr) => {{
         use std::os::windows::ffi::OsStrExt;
@@ -118,7 +118,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 let thread_info = unsafe { debug_event.u.CreateThread() };
                 dbg!(unsafe { GetThreadId(thread_info.hThread) });
                 // let mut buf = [0u16; 1024];
-                let mut buf = [0u8; 14];
+                // let mut buf = [0u8; 14];
+                let mut buf = [0u8;std::mem::size_of::<usize>()/2];
                 let addr =thread_info.lpStartAddress.unwrap() as usize + 0x1d340 as usize;
                 println!("-========= Calculating address =========-");
                 println!("lpStartAddr {:#x} + 0x1d340 = {:#x}",thread_info.lpStartAddress.unwrap() as usize,addr);
@@ -133,6 +134,27 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                     ReadProcessMemory(
                         proc_info.hProcess,
                         (thread_info.lpStartAddress.unwrap() as usize + 0x1d340 as usize)
+                            as minwindef::LPVOID,
+                        buf.as_mut_ptr() as minwindef::LPVOID,
+                        buf.len() as basetsd::SIZE_T,
+                        std::ptr::null_mut(),
+                    )
+                };
+                for i in buf.iter(){
+                    println!("{} => {:0x}",i,i);
+                }
+                use std::any::TypeId;
+
+let is_little_endian = TypeId::of::<byteorder::NativeEndian>() == TypeId::of::<byteorder::LittleEndian>();
+dbg!(is_little_endian);
+                 let mut buf = [0u8; 14];
+
+                unsafe {
+                    ReadProcessMemory(
+                        proc_info.hProcess,
+                        // (thread_info.lpStartAddress.unwrap() as usize +  0x4577488945cf488b  as usize)
+                        (thread_info.lpThreadLocalBase as usize +  0x4577488945cf488b  as usize)
+                       
                             as minwindef::LPVOID,
                         buf.as_mut_ptr() as minwindef::LPVOID,
                         buf.len() as basetsd::SIZE_T,
